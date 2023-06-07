@@ -1,0 +1,362 @@
+Docs:
+1. Description of Tableau GraphQL schema (example: CalculatedField):
+https://help.tableau.com/current/api/metadata_api/en-us/reference/calculatedfield.doc.html
+
+2. Understand the Tableau Metadata model (eg: database -> database table -> column):
+https://help.tableau.com/current/api/metadata_api/en-us/docs/meta_api_model.html
+
+3. How to use GraphQL (example: mutations):
+https://graphql.org/learn/queries/#fields
+
+
+
+
+
+
+query users
+{
+  tableauUsers {
+    name
+    ownedWorkbooks {
+      name
+    }
+  }
+}
+
+
+
+
+
+############ --------  31 Oct
+
+# Query from the Youtube tutorial:
+query YT_tutorial {
+  calculatedFields(filter : {name: "Sales Channel"}){
+    name
+    formula
+    fields(filter : {name: "Sales Channel old"}) {
+      name
+      upstreamColumns{
+      	name
+        table{
+          name
+          downstreamWorkbooks{
+            name
+          }
+        }
+      }
+  	}
+	}
+}
+
+
+
+
+
+
+
+# Sales Channel references:
+query sales_channel_refs($db_view: String) {
+  databases(filter: {name: "SMSBI"}) {
+    tables(filter: {name: $db_view}) {
+      columns(filter: {name: "SALES_CHANNEL"}) {
+        name
+        referencedByFields {
+          name
+          referencedByFields{
+            ... on Field{
+          	    name
+            }
+          }
+          datasource {
+            name
+          }
+          downstreamWorkbooks {
+            name
+            sheets{
+              name
+              datasourceFields {
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+
+
+
+########### -------------- 17 November:
+
+# Failed attempt to get worksheet filters
+query ds_filters2($db_view: String, $hasNextPage: Boolean!) {
+  databases(filter: {name: "SMSBI"}) {
+    tables(filter: {name: $db_view}) {
+      name
+      downstreamWorkbooks {
+        name
+        sheets {
+          name
+          sheetFieldInstances {
+            totalCount
+            pageInfo @include (if: $hasNextPage){
+              hasNextPage
+              endCursor
+            }
+            nodes{
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
+##### ----- DONE
+Usecase 1: Downstream DataSource filters - downstream to View_adsales_with_budget
+
+
+
+
+# All datasource filters linked to view_adsales_with_budget
+query ds_filters ($db_view: String) {
+  databases(filter: {name: "SMSBI"}) {
+    tables(filter: {name: $db_view}){
+      name
+      description
+      downstreamDatasources{
+        name
+        datasourceFilters {
+          field {
+            name
+          }
+        }
+      }
+      downstreamWorkbooks{
+        name
+        embeddedDatasources {
+          name
+          datasourceFilters{
+            field {
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+}
+##### -----
+
+
+Usecase 2a: map out all users by groups. site role
+
+
+
+
+
+Usecase 2b: map out which users/groups have access to which Tableau content
+
+
+
+Usecase 2c: which user owns what workbooks & datasources
+
+query users
+{
+  tableauUsers {
+    name
+    ownedWorkbooks {
+      name
+      projectName
+    }
+    ownedDatasources{
+      name
+      projectName
+    }
+  }
+}
+
+
+Usecase 3a: TPS connected to database views
+
+query table_to_published_ds {
+  publishedDatasources{
+    name
+    upstreamTables{
+      name
+      schema
+      fullName
+      connectionType
+      database {
+        name
+      }
+    }
+  }
+}
+
+Usecase 3b: embeddedDatasources connected to database views
+
+query table_to_embedded_ds{
+  embeddedDatasources{
+    name
+    upstreamTables{
+      name
+      schema
+      fullName
+      connectionType
+      database{
+        name
+      }
+    }
+  }
+}
+
+
+Usecase 4a: Workbooks with or without user filter
+
+query wrkbks_with_user_filter{
+  workbooks{
+    name
+    projectName
+    embeddedDatasources{
+      name
+      hasUserReference
+      upstreamDatasources{
+      	name
+    	}
+      upstreamTables{
+        name
+        database{
+          name
+        }
+      }
+    }
+  }
+}
+
+
+Usecase 4b: Published datasources with or without user filters
+
+query ds_with_user_filter{
+  publishedDatasources{
+    name
+    projectName
+    hasUserReference
+    upstreamTables{
+        name
+        database{
+          name
+        }
+    }
+  }
+}
+
+Usecase 5: Tableau content & owners
+
+query wrkbk_and_TPS_content_ownership{
+  workbooks{
+    name
+    projectName
+    updatedAt
+    owner{
+      name
+    }
+  }
+  publishedDatasources{
+    name
+    projectName
+    extractLastUpdateTime
+    owner{
+      name
+    }
+  }
+}
+
+
+
+
+
+
+
+
+Usecase : See all calculated fields:
+https://www.prosvetova.com/blog/2021-01-11-tableau-data-dictionary-metadata
+
+query calculations {
+  calculatedFields {
+    name
+    description
+    dataType
+    formula
+    referencedByCalculations {
+      name
+      formula
+    }
+    upstreamDatabases {
+      name
+    }
+    downstreamSheets {
+      name
+    }
+    downstreamDashboards{
+      name
+    }
+    downstreamWorkbooks {
+      name
+      projectName
+      tags {
+        name
+      }
+      upstreamDataQualityWarnings {
+        warningType
+        author {
+          username
+        }
+      }
+    }
+  }
+}
+
+
+
+same for fields:
+
+query fields {
+  fields {
+    name
+    description
+    referencedByCalculations {
+      name
+      formula
+    }
+    upstreamDatabases {
+      name
+    }
+    downstreamSheets {
+      name
+    }
+    downstreamDashboards{
+      name
+    }
+    downstreamWorkbooks {
+      name
+      projectName
+      tags {
+        name
+      }
+      upstreamDataQualityWarnings {
+        warningType
+        author {
+          username
+        }
+      }
+    }
+  }
+}
