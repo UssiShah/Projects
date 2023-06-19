@@ -2,8 +2,8 @@ import json
 import pandas as pd
 
 def export_to_csv():
-    file_input = '/Users/usa@gmail.com/Documents/REST API/json/calculations.json'
-    file_csv = '/Users/usa@gmail.com/Documents/REST API/csv/calculations.csv'
+    file_input = '.../calculations.json'
+    file_csv = '.../calculations.csv'
     
     with open(file_input) as f:
         list1 = []
