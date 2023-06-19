@@ -3,7 +3,6 @@
 
 import json
 
-
 # for this challenge, we're going to summarize the earthquake data as follows:
 # 1: How many quakes are there in total?
 # 2: How many quakes were felt by at least 100 people?
@@ -23,8 +22,6 @@ print(sum(event['properties']['felt'] is not None and event['properties']['felt'
           for event in data['features']))
 
 # 3: Print the name of the place whose quake was felt by the most people, with the # of reports
-
-
 # Defining a custom "key" function to extract a data field
 def get_felt(dataitem):
     felt = dataitem["properties"]["felt"]
@@ -32,10 +29,8 @@ def get_felt(dataitem):
         felt = 0
     return float(felt)
 
-
 def get_place(dataitem):
     return dataitem['properties']['place']
-
 
 def getmag(dataitem):
     magnitude = dataitem["properties"]["mag"]
@@ -43,21 +38,15 @@ def getmag(dataitem):
         magnitude = 0
     return float(magnitude)
 
-
 max_event = max(data["features"], key=get_felt)
-
-print(
-    f"Place of the most reported quake: {get_place(max_event)} felt by {max_event['properties']['felt']}")
-
+print(f"Place of the most reported quake: {get_place(max_event)} felt by {max_event['properties']['felt']}")
 
 # 4: Print the top 10 most significant events, with the significance value of each
-
 def get_sig(dataitem):
     significance = dataitem["properties"]["sig"]
     if (significance is None):
         significance = 0
     return float(significance)
-
 
 print('The 10 most significant events were:')
 data['features'].sort(key=get_sig, reverse=True)
